@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Retail Forecast Command Center — Demo</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+/* ── Design tokens ─────────────────────────────────────────────── */
+:root {
+  --surface-0:      #f9f9f7;
+  --surface-1:      #fcfcfb;
+  --text-primary:   #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted:     #898781;
+  --gridline:       #e1e0d9;
+  --baseline:       #c3c2b7;
+  --border:         rgba(11,11,11,0.10);
+  --s1: #2a78d6;   /* blue */
+  --s2: #eb6834;   /* orange */
+  --s3: #1baf7a;   /* aqua */
+  --s4: #eda100;   /* yellow */
+  --s5: #e87ba4;   /* magenta */
+  --s6: #008300;   /* green */
+  --s7: #4a3aa7;   /* violet */
+  --s8: #e34948;   /* red */
+  --good:     #0ca30c;
+  --warning:  #fab219;
+  --serious:  #ec835a;
+  --critical: #d03b3b;
+  --demo-bg:  #fffbeb;
+  --demo-border: #f59e0b;
+}
+
+/* ── Reset & base ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 13px;
+  background: var(--surface-0);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+/* ── Demo banner ───────────────────────────────────────────────── */
+.demo-banner {
+  background: var(--demo-bg);
+  border-bottom: 2px solid var(--demo-border);
+  padding: 8px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #92400e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.demo-banner .real-scale {
+  margin-left: auto;
+  font-weight: 400;
+  color: #78350f;
+  font-size: 11px;
+}
+
+/* ── Top bar ───────────────────────────────────────────────────── */
+.topbar {
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.brand-logo {
+  width: 32px; height: 32px;
+  background: var(--s1);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 16px; font-weight: 700; flex-shrink: 0;
+}
+.brand-text .title {
+  font-size: 15px; font-weight: 700; color: var(--text-primary);
+}
+.brand-text .subtitle {
+  font-size: 11px; color: var(--text-secondary); margin-top: 1px;
+}
+.meta-strip {
+  margin-left: auto;
+  display: flex; gap: 20px;
+}
+.meta-item { display: flex; flex-direction: column; align-items: flex-end; }
+.meta-item .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+.meta-item .val { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-top: 1px; }
+.whitepaper-link {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--s1);
+  color: #fff;
+  border: none; border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; text-decoration: none;
+  flex-shrink: 0;
+}
+.whitepaper-link:hover { background: #256abf; }
+
+/* ── Tab nav ───────────────────────────────────────────────────── */
+.tab-nav {
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--gridline);
+  padding: 0 20px;
+  display: flex; gap: 2px;
+  overflow-x: auto;
+}
+.tab-btn {
+  padding: 10px 16px;
+  border: none; background: none;
+  font-size: 12px; font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+}
+.tab-btn:hover { color: var(--text-secondary); }
+.tab-btn.active { color: var(--s1); border-bottom-color: var(--s1); font-weight: 600; }
+
+/* ── Main content ──────────────────────────────────────────────── */
+main { padding: 20px; max-width: 1400px; margin: 0 auto; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── KPI row ───────────────────────────────────────────────────── */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.kpi-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.kpi-card .kpi-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+.kpi-card .kpi-value { font-size: 24px; font-weight: 700; color: var(--text-primary); margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
+.kpi-card .kpi-delta { font-size: 11px; font-weight: 600; }
+.kpi-card .kpi-delta.up   { color: var(--good); }
+.kpi-card .kpi-delta.down { color: var(--critical); }
+.kpi-card .kpi-delta.neutral { color: var(--text-muted); }
+.kpi-card.accent-good  { border-left: 3px solid var(--good); }
+.kpi-card.accent-warn  { border-left: 3px solid var(--warning); }
+.kpi-card.accent-crit  { border-left: 3px solid var(--critical); }
+.kpi-card.accent-blue  { border-left: 3px solid var(--s1); }
+
+/* ── Chart cards ───────────────────────────────────────────────── */
+.chart-grid { display: grid; gap: 16px; }
+.chart-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.chart-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.chart-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.chart-card.full { grid-column: 1 / -1; }
+.chart-card .card-title {
+  font-size: 12px; font-weight: 700;
+  color: var(--text-primary); margin-bottom: 4px;
+}
+.chart-card .card-sub {
+  font-size: 11px; color: var(--text-muted); margin-bottom: 14px;
+}
+.chart-card canvas { display: block; max-height: 280px; }
+
+/* ── Legend ────────────────────────────────────────────────────── */
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-secondary); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.legend-line { width: 18px; height: 2px; flex-shrink: 0; }
+
+/* ── Table ─────────────────────────────────────────────────────── */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--gridline); }
+td { padding: 8px 10px; border-bottom: 1px solid var(--gridline); color: var(--text-secondary); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f4f3f0; }
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px; border-radius: 999px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+}
+.badge.critical { background: #fee2e2; color: var(--critical); }
+.badge.warning  { background: #fef9c3; color: #92400e; }
+.badge.good     { background: #dcfce7; color: #166534; }
+.risk-bar { height: 4px; border-radius: 2px; background: var(--gridline); }
+.risk-bar span { display: block; height: 100%; border-radius: 2px; }
+
+/* ── Item lookup ────────────────────────────────────────────────── */
+.lookup-wrap { display: flex; flex-direction: column; gap: 14px; }
+.search-row { display: flex; gap: 10px; }
+.search-row input {
+  flex: 1; padding: 8px 12px; border: 1px solid var(--gridline);
+  border-radius: 6px; font-size: 12px; color: var(--text-primary);
+  background: var(--surface-1);
+}
+.search-row input:focus { outline: 2px solid var(--s1); border-color: transparent; }
+.search-row button {
+  padding: 8px 16px; background: var(--s1); color: #fff;
+  border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.item-card {
+  background: var(--surface-1); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px;
+}
+.item-card .item-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.item-card .item-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 14px; }
+.item-stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.item-stat { background: var(--surface-0); border-radius: 6px; padding: 10px 12px; }
+.item-stat .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+.item-stat .val { font-size: 16px; font-weight: 700; margin-top: 2px; }
+
+/* ── Footer ─────────────────────────────────────────────────────── */
+.page-footer {
+  margin-top: 40px; padding: 20px;
+  border-top: 1px solid var(--gridline);
+  font-size: 11px; color: var(--text-muted);
+  display: flex; align-items: center; gap: 16px;
+}
+.page-footer a { color: var(--s1); text-decoration: none; }
+.page-footer a:hover { text-decoration: underline; }
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .chart-grid.cols-2, .chart-grid.cols-3 { grid-template-columns: 1fr; }
+  .meta-strip { display: none; }
+  .item-stat-row { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Demo banner ────────────────────────────────────────────── -->
+<div class="demo-banner">
+  <span>⚠ DEMO DATA — Illustrative numbers only.</span>
+  <span class="real-scale">Production system: 5B+ units/month · 4,500+ stores · 50K+ weekly anomaly signals</span>
+</div>
+
+<!-- ── Top bar ─────────────────────────────────────────────────── -->
+<header class="topbar">
+  <div class="brand-logo">R</div>
+  <div class="brand-text">
+    <div class="title">Retail Forecast Command Center</div>
+    <div class="subtitle">Forecast Governance &amp; Anomaly Risk Platform &nbsp;·&nbsp; Food &amp; Grocery SBU</div>
+  </div>
+  <div class="meta-strip">
+    <div class="meta-item"><span class="lbl">Mode</span><span class="val">Demo</span></div>
+    <div class="meta-item"><span class="lbl">Window</span><span class="val">Wk 1–12</span></div>
+    <div class="meta-item"><span class="lbl">SKUs</span><span class="val">2,400</span></div>
+    <div class="meta-item"><span class="lbl">Stores</span><span class="val">150</span></div>
+  </div>
+  <a href="../whitepaper.html" class="whitepaper-link" target="_blank">📄 Methodology</a>
+</header>
+
+<!-- ── Tab nav ─────────────────────────────────────────────────── -->
+<nav class="tab-nav" id="tabNav">
+  <button class="tab-btn active" data-tab="overview">Overview</button>
+  <button class="tab-btn" data-tab="waterfall">Waterfall</button>
+  <button class="tab-btn" data-tab="accuracy">Bias &amp; sMAPE</button>
+  <button class="tab-btn" data-tab="exceptions">Exceptions</button>
+  <button class="tab-btn" data-tab="item-health">Item Health</button>
+</nav>
+
+<!-- ── Content ─────────────────────────────────────────────────── -->
+<main>
+
+  <!-- ── Overview ──────────────────────────────────────────────── -->
+  <div id="tab-overview" class="tab-panel active">
+    <div class="kpi-row">
+      <div class="kpi-card accent-blue">
+        <div class="kpi-label">Active SKUs</div>
+        <div class="kpi-value">2,400</div>
+        <div class="kpi-delta neutral">Tracked this week</div>
+      </div>
+      <div class="kpi-card accent-blue">
+        <div class="kpi-label">Active Stores</div>
+        <div class="kpi-value">150</div>
+        <div class="kpi-delta neutral">All channels</div>
+      </div>
+      <div class="kpi-card accent-warn">
+        <div class="kpi-label">Network Bias</div>
+        <div class="kpi-value">−2.1%</div>
+        <div class="kpi-delta up">▲ from −8.2% (12 wks)</div>
+      </div>
+      <div class="kpi-card accent-warn">
+        <div class="kpi-label">Network sMAPE</div>
+        <div class="kpi-value">17.2%</div>
+        <div class="kpi-delta up">▲ from 22.1% (12 wks)</div>
+      </div>
+      <div class="kpi-card accent-crit">
+        <div class="kpi-label">Flagged Overrides</div>
+        <div class="kpi-value">$4.2M</div>
+        <div class="kpi-delta down">38 items need review</div>
+      </div>
+      <div class="kpi-card accent-good">
+        <div class="kpi-label">In-Stock %</div>
+        <div class="kpi-value">94.2%</div>
+        <div class="kpi-delta up">▲ 1.1pp vs. LY</div>
+      </div>
+    </div>
+
+    <div class="chart-grid cols-2">
+      <div class="chart-card full">
+        <div class="card-title">Network Forecast vs. Actuals — Weekly (Units, M)</div>
+        <div class="card-sub">System forecast · Final forecast after adjustments · Realized demand</div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-line" style="background:var(--s1)"></span>System Forecast</span>
+          <span class="legend-item"><span class="legend-line" style="background:var(--s3)"></span>Final Forecast</span>
+          <span class="legend-item"><span class="legend-line" style="background:var(--s2);border-style:dashed"></span>Actuals</span>
+        </div>
+        <canvas id="overviewLineChart" height="80"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <div class="card-title">Override Volume by Reason Code — This Week</div>
+        <div class="card-sub">Relative share of manual adjustments by category</div>
+        <canvas id="overridePieChart" height="200"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <div class="card-title">Weekly Anomaly Triage — Priority Queue</div>
+        <div class="card-sub">Exceptions resolved vs. open vs. escalated</div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-dot" style="background:var(--good)"></span>Resolved</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--warning)"></span>Open</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--critical)"></span>Escalated</span>
+        </div>
+        <canvas id="triagedBarChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Waterfall ─────────────────────────────────────────────── -->
+  <div id="tab-waterfall" class="tab-panel">
+    <div class="chart-grid">
+      <div class="chart-card full">
+        <div class="card-title">Forecast Composition Waterfall — Weekly (Units, M)</div>
+        <div class="card-sub">System base + adjustment layers → Final Forecast. Actuals shown as overlay.</div>
+        <div class="legend">
+          <span class="legend-item"><span class="legend-dot" style="background:var(--s1)"></span>System Forecast</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--s3)"></span>FOM Adj</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--s4)"></span>SOT Adj</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--s5)"></span>Event Adj</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--s7)"></span>Other Adj</span>
+          <span class="legend-item"><span class="legend-line" style="background:var(--s2)"></span>Actuals</span>
+        </div>
+        <canvas id="waterfallChart" height="70"></canvas>
+      </div>
+
+      <div class="chart-card full">
+        <div class="card-title">Override &amp; Adjustment Value — Cumulative (Units, M)</div>
+        <div class="card-sub">Total human-applied lift versus system baseline over the 12-week window</div>
+        <canvas id="adjCumChart" height="60"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Accuracy ──────────────────────────────────────────────── -->
+  <div id="tab-accuracy" class="tab-panel">
+    <div class="kpi-row">
+      <div class="kpi-card accent-good">
+        <div class="kpi-label">Current Bias</div>
+        <div class="kpi-value">−2.1%</div>
+        <div class="kpi-delta up">▲ 6.1pp vs. 12 wks ago</div>
+      </div>
+      <div class="kpi-card accent-warn">
+        <div class="kpi-label">Current sMAPE</div>
+        <div class="kpi-value">17.2%</div>
+        <div class="kpi-delta up">▲ 4.9pp improvement</div>
+      </div>
+      <div class="kpi-card accent-good">
+        <div class="kpi-label">Hit Rate (±15%)</div>
+        <div class="kpi-value">68.4%</div>
+        <div class="kpi-delta up">▲ from 52.1%</div>
+      </div>
+      <div class="kpi-card accent-blue">
+        <div class="kpi-label">Bias Corrected</div>
+        <div class="kpi-value">Near-0</div>
+        <div class="kpi-delta up">Structural fix applied</div>
+      </div>
+    </div>
+
+    <div class="chart-grid cols-2">
+      <div class="chart-card full">
+        <div class="card-title">Network Bias — Weekly Trend (%)</div>
+        <div class="card-sub">Positive = over-forecast. Negative = under-forecast. Target: −2% to +2%.</div>
+        <canvas id="biasChart" height="80"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-title">sMAPE by Week (%)</div>
+        <div class="card-sub">Lower is better. Symmetric mean absolute percentage error.</div>
+        <canvas id="smapeChart" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-title">Hit Rate ±15% — Weekly (%)</div>
+        <div class="card-sub">% of SKU-store combinations within 15% of actuals</div>
+        <canvas id="hitRateChart" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Exceptions ────────────────────────────────────────────── -->
+  <div id="tab-exceptions" class="tab-panel">
+    <div class="chart-grid">
+      <div class="chart-card full">
+        <div class="card-title">Override Risk Flagging — Anomalous Manual Adjustments</div>
+        <div class="card-sub">Overrides flagged by governance engine. Sorted by risk composite score. $7M+ in anomalous value surfaced in production (illustrative: $4.2M demo).</div>
+
+        <div style="margin-bottom: 12px; display: flex; gap: 10px; align-items: center;">
+          <select style="padding: 6px 10px; border: 1px solid var(--gridline); border-radius: 5px; font-size: 12px; color: var(--text-primary); background: var(--surface-1);">
+            <option>All Reason Codes</option>
+            <option>ALGO_ERROR</option>
+            <option>PROMO</option>
+            <option>EVENT</option>
+            <option>FOM</option>
+          </select>
+          <select style="padding: 6px 10px; border: 1px solid var(--gridline); border-radius: 5px; font-size: 12px; color: var(--text-primary); background: var(--surface-1);">
+            <option>All Risk Levels</option>
+            <option>Critical</option>
+            <option>Warning</option>
+            <option>Low</option>
+          </select>
+          <span style="margin-left: auto; font-size: 11px; color: var(--text-muted);">38 items requiring review</span>
+        </div>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>SKU ID</th>
+                <th>Description</th>
+                <th>Reason Code</th>
+                <th>Override Value</th>
+                <th>Direction</th>
+                <th>Risk Score</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="exceptionsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="card-title">Override Value by Reason Code — Last 4 Weeks</div>
+        <div class="card-sub">Stacked by category. Target: minimize ALGO_ERROR and unjustified OTHER.</div>
+        <canvas id="excStackChart" height="220"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <div class="card-title">Risk Distribution — Flagged Items</div>
+        <div class="card-sub">Count of flagged overrides by risk tier this week</div>
+        <canvas id="riskDistChart" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Item Health ────────────────────────────────────────────── -->
+  <div id="tab-item-health" class="tab-panel">
+    <div class="lookup-wrap">
+      <div class="chart-card">
+        <div class="card-title">Item Health Lookup</div>
+        <div class="card-sub">Search by SKU ID or description to view item-level forecast performance</div>
+        <div class="search-row">
+          <input type="text" id="itemSearch" placeholder="e.g. SKU-48291 or 'organic milk'" value="SKU-48291"/>
+          <button onclick="renderItemCard()">Look up</button>
+        </div>
+      </div>
+
+      <div class="item-card" id="itemCard">
+        <div class="item-name">Organic Whole Milk, 1 Gallon</div>
+        <div class="item-meta">SKU-48291 &nbsp;·&nbsp; Fresh Dairy &nbsp;·&nbsp; Dept 12 &nbsp;·&nbsp; 142 stores tracked &nbsp;·&nbsp; Non-PI channel</div>
+        <div class="item-stat-row">
+          <div class="item-stat">
+            <div class="lbl">Item Bias</div>
+            <div class="val" style="color:var(--warning)">−6.8%</div>
+          </div>
+          <div class="item-stat">
+            <div class="lbl">sMAPE</div>
+            <div class="val">19.4%</div>
+          </div>
+          <div class="item-stat">
+            <div class="lbl">In-Stock %</div>
+            <div class="val" style="color:var(--good)">96.1%</div>
+          </div>
+          <div class="item-stat">
+            <div class="lbl">Weekly Velocity</div>
+            <div class="val">4,820 u/str</div>
+          </div>
+        </div>
+        <canvas id="itemTrendChart" height="60"></canvas>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Footer ───────────────────────────────────────────────────── -->
+<footer class="page-footer">
+  <span>⚠ All figures are illustrative demo data.</span>
+  <a href="../whitepaper.html" target="_blank">📄 Read the methodology whitepaper →</a>
+  <a href="rism_impact_tracker/index.html">RISM Impact Tracker →</a>
+  <a href="price_change_tracker/index.html">Price Change Tracker →</a>
+  <span style="margin-left:auto">Built by Astha Jain &nbsp;·&nbsp; <a href="https://linkedin.com/in/ajwalmart12" target="_blank">LinkedIn</a></span>
+</footer>
+
+<script>
+/* ── Data ──────────────────────────────────────────────────────── */
+const WEEKS = ["Wk 1","Wk 2","Wk 3","Wk 4","Wk 5","Wk 6","Wk 7","Wk 8","Wk 9","Wk 10","Wk 11","Wk 12"];
+const SYS   = [14.2, 13.8, 15.1, 14.6, 16.2, 15.8, 17.3, 16.9, 18.1, 17.6, 15.2, 14.8];
+const FOM   = [0.30, 0.40, 0.20, 0.50, 0.60, 0.30, 0.40, 0.70, 0.50, 0.40, 0.30, 0.20];
+const SOT   = [0.20, 0.10, 0.30, 0.20, 0.40, 0.20, 0.30, 0.20, 0.40, 0.30, 0.20, 0.10];
+const EVT   = [0.00, 0.00, 0.00, 0.10, 0.80, 0.00, 0.00, 0.00, 0.60, 0.20, 0.00, 0.00];
+const OTH   = [0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10];
+const FINAL = SYS.map((v,i)=> +(v + FOM[i] + SOT[i] + EVT[i] + OTH[i]).toFixed(2));
+const ACT   = [13.9, 13.6, 14.8, 14.9, 17.2, 15.8, 17.5, 17.1, 18.8, 17.9, 15.1, null];
+const BIAS  = [-8.2, -7.1, -6.3, -5.8, -4.4, -3.9, -3.2, -2.8, -2.1, -1.8, -1.4, null];
+const SMAPE = [22.1, 21.3, 20.8, 19.9, 19.2, 18.8, 18.4, 18.1, 17.9, 17.6, 17.2, null];
+const HITR  = [52.1, 53.4, 55.2, 57.0, 58.8, 60.3, 62.1, 63.9, 65.4, 66.8, 68.4, null];
+
+const C = {
+  s1:'#2a78d6', s2:'#eb6834', s3:'#1baf7a', s4:'#eda100',
+  s5:'#e87ba4', s6:'#008300', s7:'#4a3aa7', s8:'#e34948',
+  good:'#0ca30c', warn:'#fab219', crit:'#d03b3b',
+  grid:'#e1e0d9', muted:'#898781', text:'#52514e'
+};
+
+const baseOpts = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#fff',
+      borderColor: C.grid,
+      borderWidth: 1,
+      titleColor: '#0b0b0b',
+      bodyColor: C.text,
+      padding: 10,
+      boxPadding: 4,
+    }
+  },
+  scales: {
+    x: { grid: { color: C.grid, lineWidth: 0.5 }, ticks: { color: C.muted, font:{size:11} } },
+    y: { grid: { color: C.grid, lineWidth: 0.5 }, ticks: { color: C.muted, font:{size:11} }, border:{dash:[3,3]} }
+  }
+};
+
+function mkLine(id, labels, datasets, yOpts={}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: { ...baseOpts,
+      plugins: { ...baseOpts.plugins, legend:{display:false} },
+      scales: {
+        x: baseOpts.scales.x,
+        y: { ...baseOpts.scales.y, ...yOpts }
+      }
+    }
+  });
+}
+
+/* ── Overview line ─────────────────────────────────────────────── */
+mkLine('overviewLineChart', WEEKS, [
+  { label:'System Forecast', data:SYS,   borderColor:C.s1, backgroundColor:C.s1+'18', fill:true, borderWidth:2, pointRadius:3, tension:0.3 },
+  { label:'Final Forecast',  data:FINAL, borderColor:C.s3, backgroundColor:'transparent', borderWidth:2, pointRadius:3, tension:0.3 },
+  { label:'Actuals',         data:ACT,   borderColor:C.s2, backgroundColor:'transparent', borderWidth:2, borderDash:[5,4], pointRadius:3, tension:0.3, spanGaps:false }
+], { title:{display:false} });
+
+/* ── Override pie ──────────────────────────────────────────────── */
+new Chart(document.getElementById('overridePieChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['ALGO_ERROR','PROMO','EVENT','SOT_STORE','FOM','OTHER'],
+    datasets: [{ data:[32,21,18,14,10,5], backgroundColor:[C.s1,C.s2,C.s3,C.s4,C.s7,C.muted], borderWidth:2, borderColor:'#fcfcfb' }]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:true, cutout:'60%',
+    plugins: {
+      legend: { position:'right', labels:{ font:{size:11}, color:C.text, boxWidth:10, padding:8 } },
+      tooltip: baseOpts.plugins.tooltip
+    }
+  }
+});
+
+/* ── Triage bar ────────────────────────────────────────────────── */
+new Chart(document.getElementById('triagedBarChart'), {
+  type: 'bar',
+  data: {
+    labels: WEEKS,
+    datasets: [
+      { label:'Resolved', data:[120,134,118,140,162,155,148,141,137,143,152,0], backgroundColor:C.good, borderRadius:3, borderSkipped:false },
+      { label:'Open',     data:[28,22,31,24,18,15,21,18,16,14,12,0],            backgroundColor:C.warn,  borderRadius:3, borderSkipped:false },
+      { label:'Escalated',data:[8, 6, 9, 5, 4, 3, 4, 4, 3, 3, 2, 0],           backgroundColor:C.crit,  borderRadius:3, borderSkipped:false },
+    ]
+  },
+  options: { ...baseOpts,
+    plugins: { ...baseOpts.plugins, legend:{ display:true, labels:{font:{size:11},color:C.text,boxWidth:8,padding:8} } },
+    scales: {
+      x: { ...baseOpts.scales.x, stacked:true },
+      y: { ...baseOpts.scales.y, stacked:true }
+    }
+  }
+});
+
+/* ── Waterfall stacked bar ─────────────────────────────────────── */
+new Chart(document.getElementById('waterfallChart'), {
+  type: 'bar',
+  data: {
+    labels: WEEKS,
+    datasets: [
+      { label:'System Forecast', data:SYS,  backgroundColor:C.s1+'cc', borderSkipped:false, borderRadius:2 },
+      { label:'FOM Adj',         data:FOM,  backgroundColor:C.s3+'cc', borderSkipped:false },
+      { label:'SOT Adj',         data:SOT,  backgroundColor:C.s4+'cc', borderSkipped:false },
+      { label:'Event Adj',       data:EVT,  backgroundColor:C.s5+'cc', borderSkipped:false },
+      { label:'Other Adj',       data:OTH,  backgroundColor:C.s7+'cc', borderSkipped:false },
+    ]
+  },
+  options: {
+    ...baseOpts,
+    plugins: {
+      ...baseOpts.plugins,
+      legend:{ display:true, labels:{font:{size:11},color:C.text,boxWidth:8,padding:8} },
+      annotation:{
+        annotations:{
+          actualLine:{
+            type:'line', scaleID:'y', value:0,
+            // we overlay actuals as a dataset instead
+          }
+        }
+      }
+    },
+    scales: {
+      x: { ...baseOpts.scales.x, stacked:true },
+      y: { ...baseOpts.scales.y, stacked:true, title:{display:true,text:'Units (M)',font:{size:11},color:C.muted} }
+    }
+  }
+});
+
+/* ── Cumulative adj ────────────────────────────────────────────── */
+const cumAdj = FOM.map((_,i)=> {
+  const s = FOM[i]+SOT[i]+EVT[i]+OTH[i];
+  return i===0 ? s : +((cumAdj?.[i-1]||0)+s).toFixed(2);
+  // recalculate below
+});
+const cumAdjData = [];
+let running = 0;
+FOM.forEach((_,i)=>{ running += FOM[i]+SOT[i]+EVT[i]+OTH[i]; cumAdjData.push(+running.toFixed(2)); });
+mkLine('adjCumChart', WEEKS, [
+  { label:'Cumulative Adjustment', data:cumAdjData, borderColor:C.s3, backgroundColor:C.s3+'22', fill:true, borderWidth:2, pointRadius:3, tension:0.3 }
+], { title:{display:true,text:'Cumulative Units Adjusted (M)',font:{size:11},color:C.muted} });
+
+/* ── Bias trend ────────────────────────────────────────────────── */
+new Chart(document.getElementById('biasChart'), {
+  type:'line',
+  data:{ labels:WEEKS, datasets:[
+    { label:'Network Bias %', data:BIAS, borderColor:C.s2, backgroundColor:C.s2+'22', fill:true, borderWidth:2, pointRadius:3, tension:0.3, spanGaps:false }
+  ]},
+  options:{ ...baseOpts,
+    plugins:{ ...baseOpts.plugins,
+      annotation:{ annotations:{
+        zeroLine:{ type:'line', scaleID:'y', value:0, borderColor:C.s1, borderWidth:1.5, borderDash:[4,3], label:{display:true,content:'Target: 0%',font:{size:10},color:C.s1,position:'end',backgroundColor:'#fff'} },
+        upperBand:{ type:'line', scaleID:'y', value:2,  borderColor:C.good+'66', borderWidth:1, borderDash:[3,3] },
+        lowerBand:{ type:'line', scaleID:'y', value:-2, borderColor:C.good+'66', borderWidth:1, borderDash:[3,3] },
+      }}
+    },
+    scales:{ x:baseOpts.scales.x, y:{ ...baseOpts.scales.y, title:{display:true,text:'Bias %',font:{size:11},color:C.muted} } }
+  }
+});
+
+/* ── sMAPE ─────────────────────────────────────────────────────── */
+mkLine('smapeChart', WEEKS, [
+  { label:'sMAPE %', data:SMAPE, borderColor:C.s4, backgroundColor:C.s4+'22', fill:true, borderWidth:2, pointRadius:3, tension:0.3, spanGaps:false }
+], { title:{display:true,text:'sMAPE %',font:{size:11},color:C.muted} });
+
+/* ── Hit rate ──────────────────────────────────────────────────── */
+mkLine('hitRateChart', WEEKS, [
+  { label:'Hit Rate ±15%', data:HITR, borderColor:C.s6, backgroundColor:C.s6+'22', fill:true, borderWidth:2, pointRadius:3, tension:0.3, spanGaps:false }
+], { title:{display:true,text:'Hit Rate %',font:{size:11},color:C.muted} });
+
+/* ── Exceptions table ──────────────────────────────────────────── */
+const excData = [
+  {sku:'SKU-12891',desc:'Organic Tortilla Chips 10oz',code:'ALGO_ERROR',val:182400,dir:'↑ Over',risk:91,status:'critical'},
+  {sku:'SKU-44302',desc:'Premium Ground Beef 3lb',code:'SOT_STORE',val:143200,dir:'↑ Over',risk:84,status:'critical'},
+  {sku:'SKU-29871',desc:'Sparkling Water Variety 24pk',code:'PROMO',val:98700,dir:'↑ Over',risk:77,status:'warning'},
+  {sku:'SKU-51204',desc:'Baby Formula Stage 2 32oz',code:'ALGO_ERROR',val:87300,dir:'↓ Under',risk:73,status:'warning'},
+  {sku:'SKU-33180',desc:'Rotisserie Chicken Seasoning',code:'OTHER',val:64100,dir:'↑ Over',risk:68,status:'warning'},
+  {sku:'SKU-18293',desc:'Oat Milk Original 64oz',code:'EVENT',val:58900,dir:'↑ Over',risk:62,status:'warning'},
+  {sku:'SKU-92104',desc:'Frozen Breakfast Sandwich 8pk',code:'ALGO_ERROR',val:47200,dir:'↓ Under',risk:55,status:'warning'},
+  {sku:'SKU-67831',desc:'Canned Diced Tomatoes 28oz',code:'FOM',val:31800,dir:'↑ Over',risk:38,status:'good'},
+  {sku:'SKU-24591',desc:'Whole Wheat Bread 20oz',code:'PROMO',val:24600,dir:'↑ Over',risk:29,status:'good'},
+  {sku:'SKU-88312',desc:'Greek Yogurt Plain 32oz',code:'SOT_CORP',val:18200,dir:'↓ Under',risk:21,status:'good'},
+];
+const tbody = document.getElementById('exceptionsTable');
+excData.forEach(r=>{
+  const riskColor = r.risk>=80?C.crit:r.risk>=60?C.warn:C.good;
+  tbody.innerHTML += `<tr>
+    <td style="font-family:monospace;font-size:11px">${r.sku}</td>
+    <td>${r.desc}</td>
+    <td><code style="background:var(--surface-0);padding:2px 6px;border-radius:3px;font-size:10px">${r.code}</code></td>
+    <td style="font-variant-numeric:tabular-nums">$${r.val.toLocaleString()}</td>
+    <td style="font-weight:600;color:${r.dir.startsWith('↑')?C.crit:C.s1}">${r.dir}</td>
+    <td>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="risk-bar" style="width:60px"><span style="width:${r.risk}%;background:${riskColor}"></span></div>
+        <span style="font-size:11px;font-weight:600;color:${riskColor}">${r.risk}</span>
+      </div>
+    </td>
+    <td><span class="badge ${r.status}">${r.status}</span></td>
+  </tr>`;
+});
+
+/* ── Exception stacked chart ───────────────────────────────────── */
+new Chart(document.getElementById('excStackChart'),{
+  type:'bar',
+  data:{
+    labels:['Wk 9','Wk 10','Wk 11','Wk 12'],
+    datasets:[
+      {label:'ALGO_ERROR',data:[142,118,98,182],backgroundColor:C.s1,borderRadius:2,borderSkipped:false},
+      {label:'PROMO',     data:[72, 81, 64, 84], backgroundColor:C.s2,borderSkipped:false},
+      {label:'EVENT',     data:[48, 32, 19, 59], backgroundColor:C.s3,borderSkipped:false},
+      {label:'SOT',       data:[31, 28, 24, 49], backgroundColor:C.s4,borderSkipped:false},
+      {label:'OTHER',     data:[22, 18, 14, 32], backgroundColor:C.s7,borderSkipped:false},
+    ]
+  },
+  options:{...baseOpts,
+    plugins:{...baseOpts.plugins, legend:{display:true,labels:{font:{size:11},color:C.text,boxWidth:8,padding:8}}},
+    scales:{ x:{...baseOpts.scales.x,stacked:true}, y:{...baseOpts.scales.y,stacked:true,title:{display:true,text:'Override Value ($K)',font:{size:11},color:C.muted}} }
+  }
+});
+
+/* ── Risk distribution ─────────────────────────────────────────── */
+new Chart(document.getElementById('riskDistChart'),{
+  type:'bar',
+  data:{
+    labels:['Critical\n(≥80)','Warning\n(60–79)','Low\n(<60)'],
+    datasets:[{
+      label:'Items',
+      data:[8,22,38],
+      backgroundColor:[C.crit,C.warn,C.good],
+      borderRadius:4, borderSkipped:false
+    }]
+  },
+  options:{...baseOpts,
+    indexAxis:'y',
+    plugins:{...baseOpts.plugins,legend:{display:false}},
+    scales:{x:{...baseOpts.scales.x,title:{display:true,text:'# Items',font:{size:11},color:C.muted}},y:baseOpts.scales.y}
+  }
+});
+
+/* ── Item card trend ───────────────────────────────────────────── */
+function renderItemCard() {
+  mkLine('itemTrendChart', WEEKS, [
+    {label:'Final Fcst',data:[4820,4910,5120,5080,5640,5380,5720,5610,5990,5840,5270,5110],borderColor:C.s1,backgroundColor:C.s1+'18',fill:true,borderWidth:2,pointRadius:2,tension:0.3},
+    {label:'Actuals',   data:[4490,4620,4810,4790,5310,5190,5480,5330,5700,5590,5050,null],borderColor:C.s2,backgroundColor:'transparent',borderWidth:2,borderDash:[5,4],pointRadius:2,tension:0.3,spanGaps:false},
+  ], {title:{display:true,text:'Units/store/week',font:{size:11},color:C.muted}});
+}
+renderItemCard();
+
+/* ── Tab switching ─────────────────────────────────────────────── */
+document.getElementById('tabNav').addEventListener('click', e=>{
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+});
+</script>
+</body>
+</html>
