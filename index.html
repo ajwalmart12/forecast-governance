@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Retail Forecast Command Center — Demo</title>
+<title>Forecast Governance and Decision Control — Demo</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <style>
@@ -226,6 +226,69 @@ tr:hover td { background: #f4f3f0; }
 .page-footer a { color: var(--s1); text-decoration: none; }
 .page-footer a:hover { text-decoration: underline; }
 
+/* ── Confidentiality banner ─────────────────────────────────────── */
+.confidentiality-banner {
+  background: #f1f5f9;
+  border-bottom: 1px solid #cbd5e1;
+  padding: 10px 32px;
+  font-size: 11px;
+  color: #475569;
+  text-align: center;
+}
+
+/* ── Decision summary ────────────────────────────────────────────── */
+.decision-summary {
+  border-left: 3px solid #6366f1;
+  background: #f8f9ff;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.ds-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.ds-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #6366f1;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.ds-val {
+  font-size: 13px;
+  color: #0b0b0b;
+  line-height: 1.5;
+}
+
+/* ── Assumptions box ────────────────────────────────────────────── */
+.assumptions-box {
+  background: #f4f3f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.assumptions-box strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+.assumptions-box ul {
+  padding-left: 18px;
+}
+.assumptions-box li {
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .ds-grid { grid-template-columns: 1fr; }
+}
+
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .chart-grid.cols-2, .chart-grid.cols-3 { grid-template-columns: 1fr; }
@@ -236,18 +299,22 @@ tr:hover td { background: #f4f3f0; }
 </head>
 <body>
 
+<div class="confidentiality-banner">
+  <strong>Independent portfolio case study.</strong> All data, company names, product identifiers, operating assumptions and results shown here are synthetic or materially transformed. This project does not reproduce any employer's data, systems, models or confidential business processes.
+</div>
+
 <!-- ── Demo banner ────────────────────────────────────────────── -->
 <div class="demo-banner">
   <span>⚠ DEMO DATA — Illustrative numbers only.</span>
-  <span class="real-scale">Production system: 5B+ units/month · 4,500+ stores · 50K+ weekly anomaly signals</span>
+  <span class="real-scale">Synthetic demo · Multi-billion-unit scale · National network of locations · Tens of thousands of weekly signals</span>
 </div>
 
 <!-- ── Top bar ─────────────────────────────────────────────────── -->
 <header class="topbar">
   <div class="brand-logo">R</div>
   <div class="brand-text">
-    <div class="title">Retail Forecast Command Center</div>
-    <div class="subtitle">Forecast Governance &amp; Anomaly Risk Platform &nbsp;·&nbsp; Food &amp; Grocery Category</div>
+    <div class="title">Forecast Governance and Decision Control</div>
+    <div class="subtitle">Prioritizing forecast exceptions, evaluating planning interventions and directing attention toward the highest-impact risks. &nbsp;·&nbsp; Perishable &amp; packaged goods category</div>
   </div>
   <div class="meta-strip">
     <div class="meta-item"><span class="lbl">Mode</span><span class="val">Demo</span></div>
@@ -269,6 +336,28 @@ tr:hover td { background: #f4f3f0; }
 
 <!-- ── Content ─────────────────────────────────────────────────── -->
 <main>
+
+  <!-- ── Decision Summary ─────────────────────────────────────── -->
+  <div class="decision-summary">
+    <div class="ds-grid">
+      <div class="ds-item">
+        <div class="ds-label">Decision</div>
+        <div class="ds-val">Which forecast exceptions require immediate planning intervention?</div>
+      </div>
+      <div class="ds-item">
+        <div class="ds-label">Evidence</div>
+        <div class="ds-val">Network bias improved from material underforecast toward neutral · Intervention win rate 72% · Tens of thousands of weekly exceptions require prioritization</div>
+      </div>
+      <div class="ds-item">
+        <div class="ds-label">Recommendation</div>
+        <div class="ds-val">Focus planning effort on high-risk, high-volume exceptions first; governance rules prevent low-value overrides</div>
+      </div>
+      <div class="ds-item">
+        <div class="ds-label">Primary Risk</div>
+        <div class="ds-val">Model cannot distinguish demand signal from noise for new or highly volatile products</div>
+      </div>
+    </div>
+  </div>
 
   <!-- ── Overview ──────────────────────────────────────────────── -->
   <div id="tab-overview" class="tab-panel active">
@@ -410,7 +499,7 @@ tr:hover td { background: #f4f3f0; }
     <div class="chart-grid">
       <div class="chart-card full">
         <div class="card-title">Override Risk Flagging — Anomalous Manual Adjustments</div>
-        <div class="card-sub">Overrides flagged by governance engine. Sorted by risk composite score. $7M+ in anomalous value surfaced in production (illustrative: $4.2M demo).</div>
+        <div class="card-sub">Overrides flagged by governance engine. Sorted by risk composite score. The synthetic example demonstrates how high-risk interventions can be prioritized for review.</div>
 
         <div style="margin-bottom: 12px; display: flex; gap: 10px; align-items: center;">
           <select style="padding: 6px 10px; border: 1px solid var(--gridline); border-radius: 5px; font-size: 12px; color: var(--text-primary); background: var(--surface-1);">
@@ -475,7 +564,7 @@ tr:hover td { background: #f4f3f0; }
 
       <div class="item-card" id="itemCard">
         <div class="item-name">Organic Whole Milk, 1 Gallon</div>
-        <div class="item-meta">SKU-48291 &nbsp;·&nbsp; Fresh Dairy &nbsp;·&nbsp; Dept 12 &nbsp;·&nbsp; 142 stores tracked &nbsp;·&nbsp; Non-PI channel</div>
+        <div class="item-meta">SKU-48291 &nbsp;·&nbsp; Fresh Dairy &nbsp;·&nbsp; Dept 12 &nbsp;·&nbsp; 142 stores tracked &nbsp;·&nbsp; indirect channel</div>
         <div class="item-stat-row">
           <div class="item-stat">
             <div class="lbl">Item Bias</div>
@@ -500,6 +589,18 @@ tr:hover td { background: #f4f3f0; }
   </div>
 
 </main>
+
+<!-- ── Assumptions & Limitations ────────────────────────────────── -->
+<div class="assumptions-box">
+  <strong>Assumptions & Limitations</strong>
+  <ul>
+    <li>All data is synthetically generated and does not reflect any employer's systems or results.</li>
+    <li>Priority scoring uses a simplified fictional formula; production systems use more complex rules.</li>
+    <li>Model cannot automatically distinguish signal from noise for volatile or new products.</li>
+    <li>Intervention effectiveness measured on a synthetic holdout; real-world win rates vary.</li>
+    <li>Dashboard supports planning decisions but does not execute them automatically.</li>
+  </ul>
+</div>
 
 <!-- ── Footer ───────────────────────────────────────────────────── -->
 <footer class="page-footer">
@@ -688,16 +789,16 @@ mkLine('hitRateChart', WEEKS, [
 
 /* ── Exceptions table ──────────────────────────────────────────── */
 const excData = [
-  {sku:'SKU-12891',desc:'Organic Tortilla Chips 10oz',code:'Model Correction',val:182400,dir:'↑ Over',risk:91,status:'critical'},
-  {sku:'SKU-44302',desc:'Premium Ground Beef 3lb',code:'Store-Initiated',val:143200,dir:'↑ Over',risk:84,status:'critical'},
-  {sku:'SKU-29871',desc:'Sparkling Water Variety 24pk',code:'PROMO',val:98700,dir:'↑ Over',risk:77,status:'warning'},
-  {sku:'SKU-51204',desc:'Baby Formula Stage 2 32oz',code:'Model Correction',val:87300,dir:'↓ Under',risk:73,status:'warning'},
-  {sku:'SKU-33180',desc:'Rotisserie Chicken Seasoning',code:'OTHER',val:64100,dir:'↑ Over',risk:68,status:'warning'},
-  {sku:'SKU-18293',desc:'Oat Milk Original 64oz',code:'EVENT',val:58900,dir:'↑ Over',risk:62,status:'warning'},
-  {sku:'SKU-92104',desc:'Frozen Breakfast Sandwich 8pk',code:'Model Correction',val:47200,dir:'↓ Under',risk:55,status:'warning'},
-  {sku:'SKU-67831',desc:'Canned Diced Tomatoes 28oz',code:'Review Team',val:31800,dir:'↑ Over',risk:38,status:'good'},
-  {sku:'SKU-24591',desc:'Whole Wheat Bread 20oz',code:'PROMO',val:24600,dir:'↑ Over',risk:29,status:'good'},
-  {sku:'SKU-88312',desc:'Greek Yogurt Plain 32oz',code:'Corporate',val:18200,dir:'↓ Under',risk:21,status:'good'},
+  {sku:'SKU-12891',desc:'Organic Tortilla Chips 10oz',code:'Model Correction',val:180000,dir:'↑ Over',risk:91,status:'critical'},
+  {sku:'SKU-44302',desc:'Premium Ground Beef 3lb',code:'Store-Initiated',val:140000,dir:'↑ Over',risk:84,status:'critical'},
+  {sku:'SKU-29871',desc:'Sparkling Water Variety 24pk',code:'PROMO',val:99000,dir:'↑ Over',risk:77,status:'warning'},
+  {sku:'SKU-51204',desc:'Baby Formula Stage 2 32oz',code:'Model Correction',val:87000,dir:'↓ Under',risk:73,status:'warning'},
+  {sku:'SKU-33180',desc:'Rotisserie Chicken Seasoning',code:'OTHER',val:64000,dir:'↑ Over',risk:68,status:'warning'},
+  {sku:'SKU-18293',desc:'Oat Milk Original 64oz',code:'EVENT',val:59000,dir:'↑ Over',risk:62,status:'warning'},
+  {sku:'SKU-92104',desc:'Frozen Breakfast Sandwich 8pk',code:'Model Correction',val:47000,dir:'↓ Under',risk:55,status:'warning'},
+  {sku:'SKU-67831',desc:'Canned Diced Tomatoes 28oz',code:'Review Team',val:32000,dir:'↑ Over',risk:38,status:'good'},
+  {sku:'SKU-24591',desc:'Whole Wheat Bread 20oz',code:'PROMO',val:25000,dir:'↑ Over',risk:29,status:'good'},
+  {sku:'SKU-88312',desc:'Greek Yogurt Plain 32oz',code:'Corporate',val:18000,dir:'↓ Under',risk:21,status:'good'},
 ];
 const tbody = document.getElementById('exceptionsTable');
 excData.forEach(r=>{
