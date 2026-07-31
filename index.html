@@ -247,7 +247,7 @@ tr:hover td { background: #f4f3f0; }
   <div class="brand-logo">R</div>
   <div class="brand-text">
     <div class="title">Retail Forecast Command Center</div>
-    <div class="subtitle">Forecast Governance &amp; Anomaly Risk Platform &nbsp;·&nbsp; Food &amp; Grocery SBU</div>
+    <div class="subtitle">Forecast Governance &amp; Anomaly Risk Platform &nbsp;·&nbsp; Food &amp; Grocery Category</div>
   </div>
   <div class="meta-strip">
     <div class="meta-item"><span class="lbl">Mode</span><span class="val">Demo</span></div>
@@ -344,8 +344,8 @@ tr:hover td { background: #f4f3f0; }
         <div class="card-sub">System base + adjustment layers → Final Forecast. Actuals shown as overlay.</div>
         <div class="legend">
           <span class="legend-item"><span class="legend-dot" style="background:var(--s1)"></span>System Forecast</span>
-          <span class="legend-item"><span class="legend-dot" style="background:var(--s3)"></span>FOM Adj</span>
-          <span class="legend-item"><span class="legend-dot" style="background:var(--s4)"></span>SOT Adj</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--s3)"></span>Review Adj</span>
+          <span class="legend-item"><span class="legend-dot" style="background:var(--s4)"></span>Planner Adj</span>
           <span class="legend-item"><span class="legend-dot" style="background:var(--s5)"></span>Event Adj</span>
           <span class="legend-item"><span class="legend-dot" style="background:var(--s7)"></span>Other Adj</span>
           <span class="legend-item"><span class="legend-line" style="background:var(--s2)"></span>Actuals</span>
@@ -415,10 +415,10 @@ tr:hover td { background: #f4f3f0; }
         <div style="margin-bottom: 12px; display: flex; gap: 10px; align-items: center;">
           <select style="padding: 6px 10px; border: 1px solid var(--gridline); border-radius: 5px; font-size: 12px; color: var(--text-primary); background: var(--surface-1);">
             <option>All Reason Codes</option>
-            <option>ALGO_ERROR</option>
+            <option>Model Correction</option>
             <option>PROMO</option>
             <option>EVENT</option>
-            <option>FOM</option>
+            <option>Review Team</option>
           </select>
           <select style="padding: 6px 10px; border: 1px solid var(--gridline); border-radius: 5px; font-size: 12px; color: var(--text-primary); background: var(--surface-1);">
             <option>All Risk Levels</option>
@@ -449,7 +449,7 @@ tr:hover td { background: #f4f3f0; }
 
       <div class="chart-card">
         <div class="card-title">Override Value by Reason Code — Last 4 Weeks</div>
-        <div class="card-sub">Stacked by category. Target: minimize ALGO_ERROR and unjustified OTHER.</div>
+        <div class="card-sub">Stacked by category. Target: minimize Model Correction and unjustified OTHER.</div>
         <canvas id="excStackChart" height="220"></canvas>
       </div>
 
@@ -505,7 +505,7 @@ tr:hover td { background: #f4f3f0; }
 <footer class="page-footer">
   <span>⚠ All figures are illustrative demo data.</span>
   <a href="../whitepaper.html" target="_blank">📄 Read the methodology whitepaper →</a>
-  <a href="rism_impact_tracker/index.html">RISM Impact Tracker →</a>
+  <a href="rism_impact_tracker/index.html">Safety Stock Monitor →</a>
   <a href="price_change_tracker/index.html">Price Change Tracker →</a>
   <span style="margin-left:auto">Built by Astha Jain &nbsp;·&nbsp; <a href="https://linkedin.com/in/ajwalmart12" target="_blank">LinkedIn</a></span>
 </footer>
@@ -579,7 +579,7 @@ mkLine('overviewLineChart', WEEKS, [
 new Chart(document.getElementById('overridePieChart'), {
   type: 'doughnut',
   data: {
-    labels: ['ALGO_ERROR','PROMO','EVENT','SOT_STORE','FOM','OTHER'],
+    labels: ['Model Correction','PROMO','EVENT','Store-Initiated','Review Team','OTHER'],
     datasets: [{ data:[32,21,18,14,10,5], backgroundColor:[C.s1,C.s2,C.s3,C.s4,C.s7,C.muted], borderWidth:2, borderColor:'#fcfcfb' }]
   },
   options: {
@@ -618,8 +618,8 @@ new Chart(document.getElementById('waterfallChart'), {
     labels: WEEKS,
     datasets: [
       { label:'System Forecast', data:SYS,  backgroundColor:C.s1+'cc', borderSkipped:false, borderRadius:2 },
-      { label:'FOM Adj',         data:FOM,  backgroundColor:C.s3+'cc', borderSkipped:false },
-      { label:'SOT Adj',         data:SOT,  backgroundColor:C.s4+'cc', borderSkipped:false },
+      { label:'Review Adj',      data:FOM,  backgroundColor:C.s3+'cc', borderSkipped:false },
+      { label:'Planner Adj',     data:SOT,  backgroundColor:C.s4+'cc', borderSkipped:false },
       { label:'Event Adj',       data:EVT,  backgroundColor:C.s5+'cc', borderSkipped:false },
       { label:'Other Adj',       data:OTH,  backgroundColor:C.s7+'cc', borderSkipped:false },
     ]
@@ -688,16 +688,16 @@ mkLine('hitRateChart', WEEKS, [
 
 /* ── Exceptions table ──────────────────────────────────────────── */
 const excData = [
-  {sku:'SKU-12891',desc:'Organic Tortilla Chips 10oz',code:'ALGO_ERROR',val:182400,dir:'↑ Over',risk:91,status:'critical'},
-  {sku:'SKU-44302',desc:'Premium Ground Beef 3lb',code:'SOT_STORE',val:143200,dir:'↑ Over',risk:84,status:'critical'},
+  {sku:'SKU-12891',desc:'Organic Tortilla Chips 10oz',code:'Model Correction',val:182400,dir:'↑ Over',risk:91,status:'critical'},
+  {sku:'SKU-44302',desc:'Premium Ground Beef 3lb',code:'Store-Initiated',val:143200,dir:'↑ Over',risk:84,status:'critical'},
   {sku:'SKU-29871',desc:'Sparkling Water Variety 24pk',code:'PROMO',val:98700,dir:'↑ Over',risk:77,status:'warning'},
-  {sku:'SKU-51204',desc:'Baby Formula Stage 2 32oz',code:'ALGO_ERROR',val:87300,dir:'↓ Under',risk:73,status:'warning'},
+  {sku:'SKU-51204',desc:'Baby Formula Stage 2 32oz',code:'Model Correction',val:87300,dir:'↓ Under',risk:73,status:'warning'},
   {sku:'SKU-33180',desc:'Rotisserie Chicken Seasoning',code:'OTHER',val:64100,dir:'↑ Over',risk:68,status:'warning'},
   {sku:'SKU-18293',desc:'Oat Milk Original 64oz',code:'EVENT',val:58900,dir:'↑ Over',risk:62,status:'warning'},
-  {sku:'SKU-92104',desc:'Frozen Breakfast Sandwich 8pk',code:'ALGO_ERROR',val:47200,dir:'↓ Under',risk:55,status:'warning'},
-  {sku:'SKU-67831',desc:'Canned Diced Tomatoes 28oz',code:'FOM',val:31800,dir:'↑ Over',risk:38,status:'good'},
+  {sku:'SKU-92104',desc:'Frozen Breakfast Sandwich 8pk',code:'Model Correction',val:47200,dir:'↓ Under',risk:55,status:'warning'},
+  {sku:'SKU-67831',desc:'Canned Diced Tomatoes 28oz',code:'Review Team',val:31800,dir:'↑ Over',risk:38,status:'good'},
   {sku:'SKU-24591',desc:'Whole Wheat Bread 20oz',code:'PROMO',val:24600,dir:'↑ Over',risk:29,status:'good'},
-  {sku:'SKU-88312',desc:'Greek Yogurt Plain 32oz',code:'SOT_CORP',val:18200,dir:'↓ Under',risk:21,status:'good'},
+  {sku:'SKU-88312',desc:'Greek Yogurt Plain 32oz',code:'Corporate',val:18200,dir:'↓ Under',risk:21,status:'good'},
 ];
 const tbody = document.getElementById('exceptionsTable');
 excData.forEach(r=>{
@@ -724,10 +724,10 @@ new Chart(document.getElementById('excStackChart'),{
   data:{
     labels:['Wk 9','Wk 10','Wk 11','Wk 12'],
     datasets:[
-      {label:'ALGO_ERROR',data:[142,118,98,182],backgroundColor:C.s1,borderRadius:2,borderSkipped:false},
+      {label:'Model Correction',data:[142,118,98,182],backgroundColor:C.s1,borderRadius:2,borderSkipped:false},
       {label:'PROMO',     data:[72, 81, 64, 84], backgroundColor:C.s2,borderSkipped:false},
       {label:'EVENT',     data:[48, 32, 19, 59], backgroundColor:C.s3,borderSkipped:false},
-      {label:'SOT',       data:[31, 28, 24, 49], backgroundColor:C.s4,borderSkipped:false},
+      {label:'Planner Adj', data:[31, 28, 24, 49], backgroundColor:C.s4,borderSkipped:false},
       {label:'OTHER',     data:[22, 18, 14, 32], backgroundColor:C.s7,borderSkipped:false},
     ]
   },
