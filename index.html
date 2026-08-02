@@ -899,8 +899,11 @@ document.getElementById('tabNav').addEventListener('click', e=>{
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
-  // Force-resize all Chart.js instances so charts that rendered while hidden get correct dimensions
-  Object.values(Chart.instances).forEach(c=>{ try{ c.resize(); }catch(e){} });
+  // Defer resize until after browser reflow — charts that rendered while hidden (display:none)
+  // have 0-width canvases and need a layout pass before resize() can read the correct container size
+  requestAnimationFrame(() => {
+    Object.values(Chart.instances).forEach(c=>{ try{ c.resize(); }catch(_){} });
+  });
 });
 </script>
 </body>
