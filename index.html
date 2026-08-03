@@ -255,13 +255,22 @@ tr:hover td { background: #f4f3f0; }
 }
 
 /* ── Responsive ─────────────────────────────────────────────────── */
+/* Canvas safety net — prevents Chart.js inline style.width from blowing past container */
+canvas { max-width: 100%; }
+
 @media (max-width: 768px) {
   .chart-grid.cols-2, .chart-grid.cols-3 { grid-template-columns: 1fr; }
   .item-stat-row { grid-template-columns: 1fr 1fr; }
   main { padding: 12px; }
   .kpi-row { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+  /* Long real-scale text causes horizontal overflow — hide it */
+  .demo-banner .real-scale { display: none; }
+  /* Footer wraps instead of overflowing */
+  .page-footer { flex-wrap: wrap; gap: 8px; }
 }
 @media (max-width: 640px) {
+  /* Tabs don't need to be sticky on small screens — saves space and removes overlap */
+  .tab-nav { position: static; }
   .snav-items { display: none; }
   .snav-brand { margin-right: auto; }
   .item-stat-row { grid-template-columns: 1fr 1fr; }
@@ -270,6 +279,8 @@ tr:hover td { background: #f4f3f0; }
   .kpi-row { grid-template-columns: 1fr 1fr; }
   .kpi-card .kpi-value { font-size: 20px; }
   .confidentiality-banner { display: none; }
+  /* GitHub badge is lowest priority — drop it on very narrow screens */
+  .snav-badge + .snav-badge { display: none; }
 }
 
 /* ── Shared nav ─── */
